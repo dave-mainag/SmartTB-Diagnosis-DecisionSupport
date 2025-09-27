@@ -1,0 +1,23 @@
+# macOS system files
+.DS_Store
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Virtual environment folders
+.venv/
+env/
+.virtual_documents/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Logs
+*.log
+
+# Ignore local notebook outputs (optional)
+*.ipynb
+
+# Ignore other unnecessary files
+*.tmp

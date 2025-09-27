@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Clinical Assistant</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #fff;
+      margin: 0;
+      padding: 40px;
+    }
+
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #e2e8f0;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 30px;
+      margin: 20px auto;
+      max-width: 1000px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(12px);
+    }
+
+    #symptoms-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+    }
+
+    .symptom-btn {
+      padding: 15px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.12);
+      text-align: center;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      user-select: none;
+    }
+
+    .symptom-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+    }
+
+    .symptom-btn.active {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #fff;
+    }
+
+    .slider-container {
+      margin: 15px 0;
+    }
+
+    .slider-container label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #cbd5e1;
+    }
+
+    .slider-container input[type="range"] {
+      width: 100%;
+      appearance: none;
+      height: 8px;
+      border-radius: 4px;
+      outline: none;
+      background: linear-gradient(90deg, #38bdf8 0%, #334155 0%);
+    }
+
+    .slider-container input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #38bdf8;
+      cursor: pointer;
+      box-shadow: 0 0 4px rgba(0,0,0,0.5);
+    }
+
+    #probabilities {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .disease-bar {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      height: 40px;
+      position: relative;
+    }
+
+    .disease-fill {
+      height: 100%;
+      border-radius: 12px;
+      background: linear-gradient(90deg, #3b82f6, #2563eb);
+      width: 0%;
+      transition: width 0.5s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      box-sizing: border-box;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    .disease-fill span {
+      white-space: nowrap;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Clinical Assistant</h1>
+
+  <!-- Symptoms -->
+  <div class="card">
+    <h2>Select Symptoms</h2>
+    <div id="symptoms-container">
+      <div class="symptom-btn" data-symptom="Cough">Cough</div>
+      <div class="symptom-btn" data-symptom="Fever">Fever</div>
+      <div class="symptom-btn" data-symptom="NightSweats">Night Sweats</div>
+      <div class="symptom-btn" data-symptom="ChestPain">Chest Pain</div>
+      <div class="symptom-btn" data-symptom="Fatigue">Fatigue</div>
+      <div class="symptom-btn" data-symptom="WeightLoss">Weight Loss</div>
+      <div class="symptom-btn" data-symptom="NoAppetite">No Appetite</div>
+      <div class="symptom-btn" data-symptom="Sputum">Sputum</div>
+      <div class="symptom-btn" data-symptom="Hemoptysis">Hemoptysis</div>
+      <div class="symptom-btn" data-symptom="RapidOnset">Rapid Onset</div>
+      <div class="symptom-btn" data-symptom="ShortnessOfBreath">Shortness of Breath</div>
+      <div class="symptom-btn" data-symptom="Wheezing">Wheezing</div>
+      <div class="symptom-btn" data-symptom="ChronicCough">Chronic Cough</div>
+      <div class="symptom-btn" data-symptom="PersistentHemoptysis">Persistent Hemoptysis</div>
+      <div class="symptom-btn" data-symptom="UnexplainedWeightLoss">Unexplained Weight Loss</div>
+    </div>
+  </div>
+
+  <!-- Priors -->
+  <div class="card">
+    <h2>Baseline Disease Prevalence</h2>
+    <div class="slider-container">
+      <label>TB: <span id="TB-val">5%</span></label>
+      <input type="range" min="0" max="100" value="5" id="TB-slider">
+    </div>
+    <div class="slider-container">
+      <label>Pneumonia: <span id="Pneumonia-val">10%</span></label>
+      <input type="range" min="0" max="100" value="10" id="Pneumonia-slider">
+    </div>
+    <div class="slider-container">
+      <label>Bronchitis: <span id="Bronchitis-val">8%</span></label>
+      <input type="range" min="0" max="100" value="8" id="Bronchitis-slider">
+    </div>
+    <div class="slider-container">
+      <label>Lung Cancer: <span id="LungCancer-val">3%</span></label>
+      <input type="range" min="0" max="100" value="3" id="LungCancer-slider">
+    </div>
+  </div>
+
+  <!-- Probabilities -->
+  <div id="probabilities" class="card">
+    <h2>Predicted Probabilities</h2>
+    <div class="disease-bar">
+      <div class="disease-fill" id="TB-bar"><span>TB</span><span id="TB-percent">0%</span></div>
+    </div>
+    <div class="disease-bar">
+      <div class="disease-fill" id="Pneumonia-bar"><span>Pneumonia</span><span id="Pneumonia-percent">0%</span></div>
+    </div>
+    <div class="disease-bar">
+      <div class="disease-fill" id="Bronchitis-bar"><span>Bronchitis</span><span id="Bronchitis-percent">0%</span></div>
+    </div>
+    <div class="disease-bar">
+      <div class="disease-fill" id="LungCancer-bar"><span>Lung Cancer</span><span id="LungCancer-percent">0%</span></div>
+    </div>
+  </div>
+
+  <script>
+    const buttons = document.querySelectorAll('.symptom-btn');
+    const diseases = ["TB", "Pneumonia", "Bronchitis", "LungCancer"];
+
+    function updateSliderBackground(slider) {
+      const val = (slider.value - slider.min) / (slider.max - slider.min) * 100;
+      slider.style.background = `linear-gradient(90deg, #38bdf8 ${val}%, #334155 ${val}%)`;
+    }
+
+    async function updateProbabilities() {
+      const evidence = {};
+      buttons.forEach(btn => {
+        evidence[btn.dataset.symptom] = btn.classList.contains('active') ? 1 : 0;
+      });
+
+      const priors = {};
+      diseases.forEach(disease => {
+        const slider = document.getElementById(disease + "-slider");
+        priors[disease] = slider.value / 100;
+        document.getElementById(disease + "-val").textContent = slider.value + "%";
+        updateSliderBackground(slider);
+      });
+
+      try {
+        const response = await fetch("/predict", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ evidence, priors })
+        });
+        const result = await response.json();
+
+        diseases.forEach(disease => {
+          const prob = result[disease];
+          const bar = document.getElementById(disease + "-bar");
+          const percentEl = document.getElementById(disease + "-percent");
+          const percent = (prob * 100).toFixed(1);
+
+          bar.style.width = percent + "%";
+          percentEl.textContent = percent + "%";
+        });
+      } catch (err) {
+        console.error("Error fetching probabilities:", err);
+      }
+    }
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('active');
+        updateProbabilities();
+      });
+    });
+
+    diseases.forEach(disease => {
+      const slider = document.getElementById(disease + "-slider");
+      slider.addEventListener('input', updateProbabilities);
+      updateSliderBackground(slider);
+    });
+
+    updateProbabilities();
+  </script>
+</body>
+</html>
