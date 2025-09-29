@@ -18,25 +18,25 @@ def index():
 @app.route("/predict", methods=["POST"])
 def predict():
     data = request.get_json()
-    evidence = data.get("evidence", {})
-    priors = data.get("priors", {})
+    evidence = data.get("evidence", {})  # expects dict like {"Cough": true, "HIV": true}
+    priors = data.get("priors", {})      # optional sliders for Pneumonia/Bronchitis/LungCancer or HIV prior
 
-    # Update priors
-    for disease, prob in priors.items():
-        cpd = TabularCPD(variable=disease, variable_card=2, values=[[1 - prob], [prob]])
+    # If priors supplied, update those root CPDs (HIV, Pneumonia, Bronchitis, LungCancer)
+    # Note: TB prior is now conditional on HIV, so do NOT set TB as unconditional prior.
+    for node, prob in priors.items():
+        # Only allow updating root nodes that actually are root in model
+        cpd = TabularCPD(variable=node, variable_card=2, values=[[1-prob],[prob]])
         model.add_cpds(cpd)
 
-    # Convert evidence booleans (0/1)
+    # Recreate infer after any CPD changes
+    infer = VariableElimination(model)
+
+    # Convert boolean evidence to 0/1 ints for pgmpy
     numeric_evidence = {k: int(v) for k, v in evidence.items()}
 
-    results = {}
-    for disease in ["TB", "Pneumonia", "Bronchitis", "LungCancer"]:
-        q = VariableElimination(model).query(
-            variables=[disease],
-            evidence=numeric_evidence,
-            show_progress=False
-        )
-        results[disease] = float(q.values[1])  # probability of "disease = 1"
+    diseases = ["TB", "Pneumonia", "Bronchitis", "LungCancer"]
+    posterior = infer.query(variables=diseases, evidence=numeric_evidence)
+    results = {disease: float(posterior[disease].values[1]) for disease in diseases}
 
     return jsonify(results)
 

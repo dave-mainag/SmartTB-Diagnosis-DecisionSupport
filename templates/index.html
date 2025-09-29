@@ -87,6 +87,14 @@
       box-shadow: 0 0 4px rgba(0,0,0,0.5);
     }
 
+    /* HIV slider special color */
+    #HIV-slider {
+      background: linear-gradient(90deg, #f87171 5%, #334155 0%);
+    }
+    #HIV-slider::-webkit-slider-thumb {
+      background: #f87171;
+    }
+
     #probabilities {
       display: flex;
       flex-direction: column;
@@ -152,6 +160,10 @@
   <div class="card">
     <h2>Baseline Disease Prevalence</h2>
     <div class="slider-container">
+      <label>HIV (affects TB): <span id="HIV-val">15%</span></label>
+      <input type="range" min="0" max="100" value="15" id="HIV-slider">
+    </div>
+    <div class="slider-container">
       <label>TB: <span id="TB-val">5%</span></label>
       <input type="range" min="0" max="100" value="5" id="TB-slider">
     </div>
@@ -187,29 +199,41 @@
   </div>
 
   <script>
+    // Select all symptom buttons and the disease list
     const buttons = document.querySelectorAll('.symptom-btn');
     const diseases = ["TB", "Pneumonia", "Bronchitis", "LungCancer"];
 
+    // Function to update slider fill color based on value
     function updateSliderBackground(slider) {
       const val = (slider.value - slider.min) / (slider.max - slider.min) * 100;
-      slider.style.background = `linear-gradient(90deg, #38bdf8 ${val}%, #334155 ${val}%)`;
+      // HIV slider is visually distinct (red fill)
+      if (slider.id === "HIV-slider") {
+        slider.style.background = `linear-gradient(90deg, #f87171 ${val}%, #334155 ${val}%)`;
+      // All other sliders are blue
+      } else {
+        slider.style.background = `linear-gradient(90deg, #38bdf8 ${val}%, #334155 ${val}%)`;
+      }
     }
 
+    // Function to fetch posterior probabilities from Flask back-end
     async function updateProbabilities() {
+      // Collect evidence: which symptoms are active
       const evidence = {};
       buttons.forEach(btn => {
         evidence[btn.dataset.symptom] = btn.classList.contains('active') ? 1 : 0;
       });
 
+      // Collect slider values as priors for root nodes (including HIV)
       const priors = {};
-      diseases.forEach(disease => {
-        const slider = document.getElementById(disease + "-slider");
-        priors[disease] = slider.value / 100;
-        document.getElementById(disease + "-val").textContent = slider.value + "%";
+      diseases.concat("HIV").forEach(node => {
+        const slider = document.getElementById(node + "-slider");
+        priors[node] = slider.value / 100;
+        document.getElementById(node + "-val").textContent = slider.value + "%";
         updateSliderBackground(slider);
       });
 
       try {
+        // Send evidence + priors to Flask predict route
         const response = await fetch("/predict", {
           method: "POST",
           headers: {"Content-Type": "application/json"},
@@ -217,12 +241,14 @@
         });
         const result = await response.json();
 
+        // Update disease bars visually
         diseases.forEach(disease => {
           const prob = result[disease];
           const bar = document.getElementById(disease + "-bar");
           const percentEl = document.getElementById(disease + "-percent");
           const percent = (prob * 100).toFixed(1);
 
+          // Update bar width and label
           bar.style.width = percent + "%";
           percentEl.textContent = percent + "%";
         });
@@ -231,6 +257,7 @@
       }
     }
 
+    // Toggle active class on symptom buttons and update probabilities
     buttons.forEach(btn => {
       btn.addEventListener('click', () => {
         btn.classList.toggle('active');
@@ -238,12 +265,14 @@
       });
     });
 
-    diseases.forEach(disease => {
-      const slider = document.getElementById(disease + "-slider");
+    // Update probabilities when sliders change
+    diseases.concat("HIV").forEach(node => {
+      const slider = document.getElementById(node + "-slider");
       slider.addEventListener('input', updateProbabilities);
       updateSliderBackground(slider);
     });
 
+    // Initial probabilities on page load
     updateProbabilities();
   </script>
 </body>
