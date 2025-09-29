@@ -199,84 +199,82 @@
   </div>
 
   <script>
-    // Select all symptom buttons and the disease list
-    const buttons = document.querySelectorAll('.symptom-btn');
-    const diseases = ["TB", "Pneumonia", "Bronchitis", "LungCancer"];
+  // Select all symptom buttons and the disease list
+  const buttons = document.querySelectorAll('.symptom-btn');
+  const diseases = ["TB", "Pneumonia", "Bronchitis", "LungCancer"];
 
-    // Function to update slider fill color based on value
-    function updateSliderBackground(slider) {
-      const val = (slider.value - slider.min) / (slider.max - slider.min) * 100;
-      // HIV slider is visually distinct (red fill)
-      if (slider.id === "HIV-slider") {
-        slider.style.background = `linear-gradient(90deg, #f87171 ${val}%, #334155 ${val}%)`;
-      // All other sliders are blue
-      } else {
-        slider.style.background = `linear-gradient(90deg, #38bdf8 ${val}%, #334155 ${val}%)`;
-      }
+  // Function to update slider fill color based on value
+  function updateSliderBackground(slider) {
+    const val = (slider.value - slider.min) / (slider.max - slider.min) * 100;
+    if (slider.id === "HIV-slider") {
+      // HIV slider visually distinct (red)
+      slider.style.background = `linear-gradient(90deg, #f87171 ${val}%, #334155 ${val}%)`;
+    } else {
+      // Other sliders blue
+      slider.style.background = `linear-gradient(90deg, #38bdf8 ${val}%, #334155 ${val}%)`;
     }
+  }
 
-    // Function to fetch posterior probabilities from Flask back-end
-    async function updateProbabilities() {
-      // Collect evidence: which symptoms are active
-      const evidence = {};
-      buttons.forEach(btn => {
-        evidence[btn.dataset.symptom] = btn.classList.contains('active') ? 1 : 0;
-      });
-
-      // Collect slider values as priors for root nodes (including HIV)
-      const priors = {};
-      diseases.concat("HIV").forEach(node => {
-        const slider = document.getElementById(node + "-slider");
-        priors[node] = slider.value / 100;
-        document.getElementById(node + "-val").textContent = slider.value + "%";
-        updateSliderBackground(slider);
-      });
-
-      try {
-        // Send evidence + priors to Flask predict route
-        const response = await fetch("/predict", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({ evidence, priors })
-        });
-        const result = await response.json();
-
-        // Update disease bars visually
-        diseases.forEach(disease => {
-          const prob = result[disease];
-          const bar = document.getElementById(disease + "-bar");
-          const percentEl = document.getElementById(disease + "-percent");
-          const percent = (prob * 100).toFixed(1);
-
-          // Update bar width and label
-          bar.style.width = percent + "%";
-          percentEl.textContent = percent + "%";
-        });
-      } catch (err) {
-        console.error("Error fetching probabilities:", err);
-      }
-    }
-
-    // Toggle active class on symptom buttons and update probabilities
+  // Function to fetch posterior probabilities from Flask back-end
+  async function updateProbabilities() {
+    // Collect symptom evidence
+    const evidence = {};
     buttons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        btn.classList.toggle('active');
-        updateProbabilities();
-      });
+      evidence[btn.dataset.symptom] = btn.classList.contains('active') ? 1 : 0;
     });
 
-    // Update probabilities when sliders change
+    // Collect slider values as priors
+    const priors = {};
     diseases.concat(["HIV"]).forEach(node => {
-        const slider = document.getElementById(node + "-slider");
-        priors[node] = slider.value / 100;
-        if (document.getElementById(node + "-val")) {
-            document.getElementById(node + "-val").textContent = slider.value + "%";
-        }
-        updateSliderBackground(slider);
+      const slider = document.getElementById(node + "-slider");
+      priors[node] = slider.value / 100;
+      if (document.getElementById(node + "-val")) {
+        document.getElementById(node + "-val").textContent = slider.value + "%";
+      }
+      updateSliderBackground(slider);
     });
 
-    // Initial probabilities on page load
-    updateProbabilities();
-  </script>
+    try {
+      // Send to Flask
+      const response = await fetch("/predict", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ evidence, priors })
+      });
+      const result = await response.json();
+
+      // Update disease bars
+      diseases.forEach(disease => {
+        const prob = result[disease];
+        const bar = document.getElementById(disease + "-bar");
+        const percentEl = document.getElementById(disease + "-percent");
+        const percent = (prob * 100).toFixed(1);
+
+        bar.style.width = percent + "%";
+        percentEl.textContent = percent + "%";
+      });
+    } catch (err) {
+      console.error("Error fetching probabilities:", err);
+    }
+  }
+
+  // Toggle active class on symptom buttons
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('active');
+      updateProbabilities();
+    });
+  });
+
+  // Update probabilities when sliders change
+  diseases.concat(["HIV"]).forEach(node => {
+    const slider = document.getElementById(node + "-slider");
+    slider.addEventListener('input', updateProbabilities);
+    updateSliderBackground(slider);
+  });
+
+  // Initial probabilities on page load
+  updateProbabilities();
+</script>
 </body>
 </html>
