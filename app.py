@@ -39,7 +39,10 @@ def predict():
 
     diseases = ["TB", "Pneumonia", "Bronchitis", "LungCancer"]
     posterior = infer.query(variables=diseases, evidence=numeric_evidence)
-    results = {disease: float(posterior[disease].values[1]) for disease in diseases}
+    results = {}
+    for disease in diseases:
+        factor = posterior[disease]  # this is a DiscreteFactor
+        results[disease] = float(factor.values[1])
 
     return jsonify(results)
 
