@@ -266,10 +266,13 @@
     });
 
     // Update probabilities when sliders change
-    diseases.concat("HIV").forEach(node => {
-      const slider = document.getElementById(node + "-slider");
-      slider.addEventListener('input', updateProbabilities);
-      updateSliderBackground(slider);
+    diseases.concat(["HIV"]).forEach(node => {
+        const slider = document.getElementById(node + "-slider");
+        priors[node] = slider.value / 100;
+        if (document.getElementById(node + "-val")) {
+            document.getElementById(node + "-val").textContent = slider.value + "%";
+        }
+        updateSliderBackground(slider);
     });
 
     // Initial probabilities on page load
