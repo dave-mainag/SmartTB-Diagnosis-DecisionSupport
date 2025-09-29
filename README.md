@@ -5,6 +5,8 @@ An intelligent clinical decision-support system designed to help healthcare prov
 ## Overview
 SmartTB leverages a Bayesian network model to assess patient symptoms and prior risk factors, producing disease probability estimates in real-time. The system offers an intuitive interface for symptom selection and visualizes probabilities to guide clinical decision-making.
 
+👉 [Access SmartTB Clinical Assistant](https://your-link-here.com)
+
 ## Key Features
 - Symptom-based disease probability calculation for TB, Pneumonia, Bronchitis, and Lung Cancer.
 - Interactive sliders to adjust disease priors based on local prevalence or patient history.
@@ -18,7 +20,7 @@ SmartTB leverages a Bayesian network model to assess patient symptoms and prior 
 - **API:** JSON-based communication between frontend and backend
 
 ## Usage
-1. Open the web interface.
+1. Open the web interface: [SmartTB Clinical Assistant](https://your-link-here.com)
 2. Select relevant patient symptoms.
 3. Adjust disease priors if needed.
 4. View the dynamically updated probability estimates for each condition.
