@@ -1,13 +1,12 @@
 import pickle
 from flask import Flask, request, jsonify, render_template
 from pgmpy.inference import VariableElimination
-from pgmpy.models import DiscreteBayesianNetwork
 from pgmpy.factors.discrete import TabularCPD
 
 app = Flask(__name__)
 
-# Load pickled model
-with open("tb_clinical_model.pkl", "rb") as f:
+# Load pickled model, a DiscreteBayesianNetwork model
+with open("tb_clinical_model.pkl", "rb") as f:      
     model = pickle.load(f)
 
 # Serve the main web page (index.html)
@@ -38,10 +37,9 @@ def predict():
     numeric_evidence = {k: int(v) for k, v in evidence.items()}
 
     diseases = ["TB", "Pneumonia", "Bronchitis", "LungCancer"]
-    posterior = infer.query(variables=diseases, evidence=numeric_evidence)
     results = {}
     for disease in diseases:
-        factor = posterior[disease]  # this is a DiscreteFactor
+        factor = infer.query(variables=[disease], evidence=numeric_evidence, show_progress=False)
         results[disease] = float(factor.values[1])
 
     return jsonify(results)
